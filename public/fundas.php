@@ -1,11 +1,18 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../src/datos/RepositorioFundas.php';
+require_once __DIR__ . '/../src/datos/conectar.php';
+require_once __DIR__ . '/../src/modelos/Producto.php';
 require_once __DIR__ . '/../src/utilidades/vistas.php';
 
-$repositorio = new RepositorioFundas(__DIR__ . '/../datos/datos.json');
-$productos = $repositorio->obtenerTodos();
+// El JOIN devuelve la categoría como texto, con los mismos campos que tenía datos.json.
+$consulta = 'SELECT f.id, f.nombreProducto, c.nombre AS categoria, f.precio, f.stock, f.modelo_compatible AS modeloCompatible
+             FROM fundas f
+             INNER JOIN categorias c ON c.id = f.categoria_id
+             ORDER BY f.id';
+
+$registros = conectar()->query($consulta)->fetchAll();
+$productos = array_map(fn (array $registro) => Producto::desdeArreglo($registro), $registros);
 ?>
 
 <!DOCTYPE html>
@@ -33,8 +40,8 @@ $productos = $repositorio->obtenerTodos();
             <a href="subir-producto.php" class="boton-agregar">Agregar funda +</a>
             <section class="tarjetas-productos">
                 <?php foreach ($productos as $producto): ?>
-                    <?php mostrarTarjetaProducto($producto); ?>
-                <?php endforeach; ?>
+                <?php mostrarTarjetaProducto($producto, 3); ?>
+            <?php endforeach; ?>
             </section>
         </main>
 
